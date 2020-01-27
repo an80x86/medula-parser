@@ -2,6 +2,8 @@ package technology.tabula.invoice.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Document {
     private String line;
@@ -47,45 +49,24 @@ public class Document {
             this.line = line;
             if (line == null || line.length() == 0) return;
 
-            int i=0;
-            i++;
-            //String desen = "ABCDEFGHIJKLMNOPRSTUVYZĞÜŞİÖÇabcdefghijklmnoprstuvyzığüşçö*/1234567890,";
-            //String tmp = "";
-            //List<String> fields = new ArrayList<>();
-            //for(char c:line.toCharArray()) {
-            //    Boolean isFind = false;
-            //    for(char d:desen.toCharArray()) {
-            //        if (d == c) {
-            //            tmp += c;
-            //            isFind = true;
-            //        }
-            //    }
-            //    System.out.println(tmp);
-            //    tmp="";
-            //}
-
+            Pattern q = Pattern.compile("[0-9]{1,2}(/|-)[0-9]{1,2}(/|-)[0-9]{4}");
             String[] lines = line.split(";");
-            if (lines.length == 7) {
-                success = sectionA1Work(lines);
-                success = (getSiraNo() != null) && isNumeric(getSiraNo());
-                if (!success) return;
 
-                success = sectionA2Work(lines);
-                success = sectionA3Work(lines);
-                success = sectionA4Work(lines);
-                success = sectionA5Work(lines);
-                success = sectionA6Work(lines);
-                success = sectionA7Work(lines);
-                success = sectionA8Work(lines);
+            int dateIndis = -1;
+            for(int i=0;i<lines.length;i++) {
+                Matcher n = q.matcher(lines[i]);
+                if (n.find()) {
+                    dateIndis = i;
+                    //System.out.println(i + ">"+tmp);
+                    //System.out.println(i + ">"+tmp.split(";")[i]);
+                    break;
+                }
             }
-            else
-            if (lines.length == 14) {
-                success = sectionBWork(lines);
 
-                success = (getSiraNo() != null) && isNumeric(getSiraNo());
-            } else {
-                System.out.println(lines.length);
-                success = false;
+            if (dateIndis != -1) {
+                //System.out.println(line);
+                //System.out.println("> " + dateIndis);
+                success = sectionWork(lines, dateIndis);
             }
         }
         catch(Exception ex) {
@@ -106,44 +87,39 @@ public class Document {
         return true;
     }
 
-    private Boolean sectionBWork(String[] lines) {
-        if (lines.length != 14) return false;
+    private Boolean sectionWork(String[] lines, int dateIndis) {
+        //5->3891;26V1AA0;11728287**;SEVTAP;ÇİÇEK;      31/12/2019;48,28;1,33;9,39;37,56;2;0,00;18.0;4B;Ç;
+        //6->3887;26V0YPH;45299052**;METE  ;LÜTFİ;BIYIK;31/12/2019;66,00;1,82;12,84;51,34;3;0,00;7.0;4A;Ç;19QDLRT;
+
+        int fark = dateIndis - 5;
 
         SiraNo = lines[0];
         ReceteNo = lines[1];
 
         TCKimlikNo = lines[2];
         Adi = lines[3];
-
-        Soyadi = lines[4];
-        Recete = lines[5];
-        Toplam = lines[6];
-        Iskonto = lines[7];
-        KatTut = lines[8];
-        OdenenTut = lines[9];
-
-        Adet = lines[10];
-        try {
-            MuaMaas = lines[11].split(" ")[0];
-            MuaElden = lines[11].split(" ")[1];
-        }
-        catch(Exception ex) {
-            System.out.println("Split error(MuaMaas) : " + ex.getMessage());
+        if (fark>0) {
+            Adi += Adi + " " + lines[4];
         }
 
-        Kapsam = lines[12];
+        Soyadi = lines[4+fark];
 
-        try {
-            SigortaliTur = lines[13].split(" ")[0];
-            EreceteNo = lines[13].split(" ")[1];
-        }
-        catch(Exception ex) {
-            System.out.println("Split error(SigortaliTur) : " + ex.getMessage());
-        }
+        Recete = lines[5+fark];
+        Toplam = lines[6+fark];
+        Iskonto = lines[7+fark];
+        KatTut = lines[8+fark];
+        OdenenTut = lines[9+fark];
 
-        //Kapsam = lines[14];
-        //SigortaliTur = lines[15];
-        //EreceteNo = lines[16];
+        Adet = lines[10+fark];
+        MuaMaas =  lines[11+fark];
+        MuaElden =  lines[12+fark];
+        Kapsam = (13+fark) < lines.length ? lines[13+fark] : null;
+        SigortaliTur = (14+fark) < lines.length ? lines[14+fark] : null;
+        EreceteNo = (15+fark) < lines.length ? lines[15+fark] : null;
+
+        Maj = (16+fark) < lines.length ? lines[16] : null;
+        Barkodlu = (17+fark) < lines.length ? lines[17] : null;
+        MRapor = (18+fark) < lines.length ? lines[18] : null;
 
         return true;
     }

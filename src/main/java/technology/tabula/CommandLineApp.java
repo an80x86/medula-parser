@@ -82,7 +82,6 @@ public class CommandLineApp {
             }
 
             Pattern p = Pattern.compile("\\d+");
-            Pattern q = Pattern.compile("[0-9]{1,2}(/|-)[0-9]{1,2}(/|-)[0-9]{4}");
             Boolean sectionOpen = false;
             new CommandLineApp(System.out, line).extractTables(line);
             ArrayList<String> lines = UyumCsvReader.returnAllLines(args[7]);
@@ -114,28 +113,16 @@ public class CommandLineApp {
                     Matcher m = p.matcher(tmp.split(";")[0]);
                     if (m.find()) {
                         //System.out.println(">" + tmp.split(";").length);
-
-                        for(int i=0;i<tmp.split(";").length;i++) {
-                            Matcher n = q.matcher(tmp.split(";")[i]);
-                            if (n.find()) {
-                                System.out.println(i + ">"+tmp);
-                                System.out.println(i + ">"+tmp.split(";")[i]);
-                            }
+                        Document document = new Document(tmp);
+                        if (document.getSuccess()) {
+                            dto.add(document);
                         }
                     }
-
-
-
-                    //System.out.println(str.split(";")[0] + " " + str.split(";").length + " " + str);
-                    //Document document = new Document(tmp);
-                    //if (document.getSuccess()) {
-                    //    dto.add(document);
-                    //}
                 }
             }
             //System.out.println(top);
             //System.out.println(bottom);
-            //System.out.println(dto);
+            System.out.println(dto);
         } catch (ParseException exp) {
             System.err.println("Error: " + exp.getMessage());
             System.exit(1);
