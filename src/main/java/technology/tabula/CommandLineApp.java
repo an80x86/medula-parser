@@ -6,9 +6,9 @@ import java.io.FilenameFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,7 +24,9 @@ import technology.tabula.detectors.NurminenDetectionAlgorithm;
 import technology.tabula.extractors.BasicExtractionAlgorithm;
 import technology.tabula.extractors.SpreadsheetExtractionAlgorithm;
 import technology.tabula.invoice.UyumCsvReader;
+import technology.tabula.invoice.dto.Bottom;
 import technology.tabula.invoice.dto.Document;
+import technology.tabula.invoice.dto.Top;
 import technology.tabula.writers.CSVWriter;
 import technology.tabula.writers.JSONWriter;
 import technology.tabula.writers.TSVWriter;
@@ -79,17 +81,21 @@ public class CommandLineApp {
                 System.exit(0);
             }
 
-            //Map<Integer, Integer> liste = new HashMap<>();
+            Pattern p = Pattern.compile("\\d+");
+            Pattern q = Pattern.compile("[0-9]{1,2}(/|-)[0-9]{1,2}(/|-)[0-9]{4}");
             Boolean sectionOpen = false;
             new CommandLineApp(System.out, line).extractTables(line);
             ArrayList<String> lines = UyumCsvReader.returnAllLines(args[7]);
             ArrayList<Document> dto = new ArrayList<>();
+            Top top = new Top();
+            Bottom bottom = new Bottom();
             for (String str : lines) {
-                //System.out.println(str);
-
                 if (str == null || str.trim().length()==0) continue;
 
-                if (str.contains("Sıra No Reçete No;") || str.contains("Sıra No;Reçete No;")) {
+                top.SectionWork(str);
+                bottom.SectionWork(str);
+
+                if (str.contains("Sıra No Reçete No") || str.contains("Sıra No") || str.contains("Sıra Reçete")) {
                     sectionOpen = true;
                     continue;
                 }
@@ -100,19 +106,36 @@ public class CommandLineApp {
                     continue;
                 }
 
-                /*liste.put(str.split(";").length,str.split(";").length);
-                if (str.split(";").length == 8) {
-                    System.out.println(str);
-                }*/
-                if (sectionOpen && (str.split(";").length == 7 || str.split(";").length == 14)) {
-                    Document document = new Document(str);
-                    if (document.getSuccess()) {
-                        dto.add(document);
-                        //System.out.println(document);
+                if (sectionOpen  &&  str.contains(";")) {
+                    String tmp = str.replace(' ', ';');
+                    tmp = tmp.replace(";;",";");
+                    tmp = tmp.replace(";;",";");
+
+                    Matcher m = p.matcher(tmp.split(";")[0]);
+                    if (m.find()) {
+                        //System.out.println(">" + tmp.split(";").length);
+
+                        for(int i=0;i<tmp.split(";").length;i++) {
+                            Matcher n = q.matcher(tmp.split(";")[i]);
+                            if (n.find()) {
+                                System.out.println(i + ">"+tmp);
+                                System.out.println(i + ">"+tmp.split(";")[i]);
+                            }
+                        }
                     }
+
+
+
+                    //System.out.println(str.split(";")[0] + " " + str.split(";").length + " " + str);
+                    //Document document = new Document(tmp);
+                    //if (document.getSuccess()) {
+                    //    dto.add(document);
+                    //}
                 }
             }
-            //System.out.println(liste);
+            //System.out.println(top);
+            //System.out.println(bottom);
+            //System.out.println(dto);
         } catch (ParseException exp) {
             System.err.println("Error: " + exp.getMessage());
             System.exit(1);

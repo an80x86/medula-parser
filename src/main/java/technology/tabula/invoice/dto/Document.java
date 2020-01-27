@@ -1,5 +1,8 @@
 package technology.tabula.invoice.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Document {
     private String line;
     private Boolean success = false;
@@ -42,8 +45,25 @@ public class Document {
     public Document(String line) {
         try {
             this.line = line;
-
             if (line == null || line.length() == 0) return;
+
+            int i=0;
+            i++;
+            //String desen = "ABCDEFGHIJKLMNOPRSTUVYZĞÜŞİÖÇabcdefghijklmnoprstuvyzığüşçö*/1234567890,";
+            //String tmp = "";
+            //List<String> fields = new ArrayList<>();
+            //for(char c:line.toCharArray()) {
+            //    Boolean isFind = false;
+            //    for(char d:desen.toCharArray()) {
+            //        if (d == c) {
+            //            tmp += c;
+            //            isFind = true;
+            //        }
+            //    }
+            //    System.out.println(tmp);
+            //    tmp="";
+            //}
+
             String[] lines = line.split(";");
             if (lines.length == 7) {
                 success = sectionA1Work(lines);
@@ -108,7 +128,7 @@ public class Document {
             MuaElden = lines[11].split(" ")[1];
         }
         catch(Exception ex) {
-            //System.out.println("Split error(MuaMaas) : " + ex.getMessage());
+            System.out.println("Split error(MuaMaas) : " + ex.getMessage());
         }
 
         Kapsam = lines[12];
@@ -118,7 +138,7 @@ public class Document {
             EreceteNo = lines[13].split(" ")[1];
         }
         catch(Exception ex) {
-            //System.out.println("Split error(SigortaliTur) : " + ex.getMessage());
+            System.out.println("Split error(SigortaliTur) : " + ex.getMessage());
         }
 
         //Kapsam = lines[14];
@@ -295,13 +315,9 @@ public class Document {
         return success;
     }
 
-    private String getValue(String val, int indis) {
-        return "";
-    }
-
     @Override
     public String toString() {
-        return "document{" +
+        return "Document{" +
                 "SiraNo='" + SiraNo + '\'' +
                 ", ReceteNo='" + ReceteNo + '\'' +
                 ", TCKimlikNo='" + TCKimlikNo + '\'' +
