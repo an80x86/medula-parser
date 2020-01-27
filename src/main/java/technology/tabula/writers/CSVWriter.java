@@ -34,7 +34,7 @@ public class CSVWriter implements Writer {
 		try (CSVPrinter printer = new CSVPrinter(out, format)) {
 			//System.out.println("Burasi mi?");
 			//format.withDelimiter(';');
-			System.out.println("Delimeter : " + format.getDelimiter());
+			//System.out.println("Delimeter : " + format.getDelimiter());
 			//format.withDelimiter(';');
 			for (Table table : tables) {
 				for (List<RectangularTextContainer> row : table.getRows()) {

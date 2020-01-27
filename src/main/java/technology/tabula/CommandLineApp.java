@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +23,8 @@ import technology.tabula.detectors.DetectionAlgorithm;
 import technology.tabula.detectors.NurminenDetectionAlgorithm;
 import technology.tabula.extractors.BasicExtractionAlgorithm;
 import technology.tabula.extractors.SpreadsheetExtractionAlgorithm;
+import technology.tabula.invoice.UyumCsvReader;
+import technology.tabula.invoice.dto.Document;
 import technology.tabula.writers.CSVWriter;
 import technology.tabula.writers.JSONWriter;
 import technology.tabula.writers.TSVWriter;
@@ -63,16 +64,7 @@ public class CommandLineApp {
     public static void main(String[] args) {
         CommandLineParser parser = new DefaultParser();
         try {
-
-            args = new String[8];
-            args[0] = "-n";
-            args[1] = "-p";
-            args[2] = "all";
-            args[3] = "-f";
-            args[4] = "CSV";
-            args[5] = "d:/temp/rapor/rapor4.pdf";
-            args[6] = "-o";
-            args[7] = "d:/temp/rapor/rapor4.csv";
+            args = new String[] {"-n", "-p", "all", "-f", "CSV", "d:/temp/rapor/rapor5.pdf", "-o", "d:/temp/rapor/rapor5.csv"};
 
             // parse the command line arguments
             CommandLine line = parser.parse(buildOptions(), args);
@@ -87,11 +79,45 @@ public class CommandLineApp {
                 System.exit(0);
             }
 
+            //Map<Integer, Integer> liste = new HashMap<>();
+            Boolean sectionOpen = false;
             new CommandLineApp(System.out, line).extractTables(line);
+            ArrayList<String> lines = UyumCsvReader.returnAllLines(args[7]);
+            ArrayList<Document> dto = new ArrayList<>();
+            for (String str : lines) {
+                //System.out.println(str);
+
+                if (str == null || str.trim().length()==0) continue;
+
+                if (str.contains("Sıra No Reçete No;") || str.contains("Sıra No;Reçete No;")) {
+                    sectionOpen = true;
+                    continue;
+                }
+
+                if (str.contains("\"\";;;;;;;;;"))
+                {
+                    sectionOpen = false;
+                    continue;
+                }
+
+                /*liste.put(str.split(";").length,str.split(";").length);
+                if (str.split(";").length == 8) {
+                    System.out.println(str);
+                }*/
+                if (sectionOpen && (str.split(";").length == 7 || str.split(";").length == 14)) {
+                    Document document = new Document(str);
+                    if (document.getSuccess()) {
+                        dto.add(document);
+                        //System.out.println(document);
+                    }
+                }
+            }
+            //System.out.println(liste);
         } catch (ParseException exp) {
             System.err.println("Error: " + exp.getMessage());
             System.exit(1);
         }
+
         System.exit(0);
     }
 
